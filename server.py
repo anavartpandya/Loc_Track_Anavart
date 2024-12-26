@@ -2,6 +2,7 @@ from flask import Flask, request, jsonify, render_template_string
 from flask_socketio import SocketIO
 import folium
 import json
+import eventlet
 
 app = Flask(__name__)
 socketio = SocketIO(app)
@@ -79,4 +80,5 @@ def show_map():
     return jsonify({"status": "error", "message": "No location data available"}), 400
 
 if __name__ == '__main__':
-    socketio.run(app, host='0.0.0.0', port=5000)
+    eventlet.monkey_patch()
+    socketio.run(app, host='0.0.0.0', port=5000, debug=False)
