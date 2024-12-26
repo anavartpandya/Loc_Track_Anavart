@@ -6,11 +6,50 @@ from flask_socketio import SocketIO
 import folium
 import json
 
+from math import radians, sin, cos, sqrt, atan2
+
 app = Flask(__name__)
 socketio = SocketIO(app)
 
 # Store the latest location
 latest_location = {"latitude": None, "longitude": None}
+
+# Predefined locations
+locations = {
+    "home": {"latitude": 22.991497097547864, "longitude": 72.60979031749606},  # Replace with your home coordinates
+    "office": {"latitude": 23.152755532906006, "longitude": 72.5432677652376}  # Replace with Adani Shantigram coordinates
+}
+
+def calculate_distance(lat1, lon1, lat2, lon2):
+    """
+    Calculate the distance in meters between two latitude/longitude points.
+    """
+    R = 6371000  # Radius of the Earth in meters
+    phi1 = radians(lat1)
+    phi2 = radians(lat2)
+    delta_phi = radians(lat2 - lat1)
+    delta_lambda = radians(lon2 - lon1)
+
+    a = sin(delta_phi / 2) ** 2 + cos(phi1) * cos(phi2) * sin(delta_lambda / 2) ** 2
+    c = 2 * atan2(sqrt(a), sqrt(1 - a))
+
+    return R * c  # Distance in meters
+
+def location_status(latest_location,locations):
+    # Check proximity to home and office
+    proximity_status = "Unknown Location"
+    for place, coords in locations.items():
+        distance = calculate_distance(
+            latest_location["latitude"],
+            latest_location["longitude"],
+            coords["latitude"],
+            coords["longitude"]
+        )
+        if distance <= 750:  # Adjust the proximity range (100 meters)
+            proximity_status = place.capitalize()
+            break
+    
+    return [proximity_status, distance]
 
 @app.route('/')
 def home():
@@ -31,12 +70,15 @@ def update_location():
             print(f"Updated Location: {latest_location}")
 
             # Calculate the sum of latitude and longitude
-            lat_long_sum = latest_location["latitude"] + latest_location["longitude"]
+            # lat_long_sum = latest_location["latitude"] + latest_location["longitude"]
+
+            # Check for the proximity to know locations
+            proximity = location_status(latest_location,locations)
 
             # Notify clients to refresh the map
             socketio.emit('refresh_map', {'message': 'New location received'})
 
-            return jsonify({"status": "success", "message": "Location updated!", "sum": lat_long_sum}), 200
+            return jsonify({"status": "success", "message": "Location updated!", "prox_status": proximity[0], "dist": proximity[1]}), 200
         except json.JSONDecodeError:
             return jsonify({"status": "error", "message": "Invalid JSON format in 'Text' key"}), 400
 
