@@ -1,8 +1,10 @@
+import eventlet
+eventlet.monkey_patch()
+
 from flask import Flask, request, jsonify, render_template_string
 from flask_socketio import SocketIO
 import folium
 import json
-import eventlet
 
 app = Flask(__name__)
 socketio = SocketIO(app)
