@@ -49,7 +49,7 @@ def location_status(latest_location,locations):
             proximity_status = place.capitalize()
             break
     
-    return [proximity_status, distance]
+    return [proximity_status, int(distance)]
 
 @app.route('/')
 def home():
