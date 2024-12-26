@@ -49,10 +49,10 @@ def location_status(latest_location,locations):
             proximity_status = place.capitalize()
             break
 
-        if proximity_status == "Office":
-            notify = True
-        else:
-            notify = False
+    if proximity_status == 'Office':
+        notify = True
+    else:
+        notify = False
     
     return [proximity_status, int(distance), notify]
 
