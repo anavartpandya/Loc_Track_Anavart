@@ -49,7 +49,7 @@ def location_status(latest_location,locations):
             proximity_status = place.capitalize()
             break
 
-        if proximity_status == 'Office':
+        if proximity_status == "Office":
             notify = True
         else:
             notify = False
