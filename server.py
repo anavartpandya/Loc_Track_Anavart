@@ -48,8 +48,13 @@ def location_status(latest_location,locations):
         if distance <= 750:  # Adjust the proximity range (100 meters)
             proximity_status = place.capitalize()
             break
+
+        if proximity_status == 'Office':
+            notify = True
+        else:
+            notify = False
     
-    return [proximity_status, int(distance)]
+    return [proximity_status, int(distance), notify]
 
 @app.route('/')
 def home():
@@ -78,7 +83,7 @@ def update_location():
             # Notify clients to refresh the map
             socketio.emit('refresh_map', {'message': 'New location received'})
 
-            return jsonify({"status": "success", "message": "Location updated!", "prox_status": proximity[0], "dist": proximity[1]}), 200
+            return jsonify({"status": "success", "message": "Location updated!", "prox_status": proximity[0], "dist": proximity[1], "notify": proximity[2]}), 200
         except json.JSONDecodeError:
             return jsonify({"status": "error", "message": "Invalid JSON format in 'Text' key"}), 400
 
