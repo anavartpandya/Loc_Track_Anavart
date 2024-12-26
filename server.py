@@ -30,10 +30,13 @@ def update_location():
             latest_location["longitude"] = parsed_data["longitude"]
             print(f"Updated Location: {latest_location}")
 
+            # Calculate the sum of latitude and longitude
+            lat_long_sum = latest_location["latitude"] + latest_location["longitude"]
+
             # Notify clients to refresh the map
             socketio.emit('refresh_map', {'message': 'New location received'})
 
-            return jsonify({"status": "success", "message": "Location updated!"}), 200
+            return jsonify({"status": "success", "message": "Location updated!", "sum": lat_long_sum}), 200
         except json.JSONDecodeError:
             return jsonify({"status": "error", "message": "Invalid JSON format in 'Text' key"}), 400
 
