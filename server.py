@@ -3,6 +3,10 @@ import os
 
 app = Flask(__name__)
 
+@app.route('/')
+def home():
+    return "Flask server is running!", 200
+
 @app.route('/update_location', methods=['POST'])
 def update_location():
     data = request.json
