@@ -2,6 +2,7 @@ import eventlet
 eventlet.monkey_patch()
 
 from flask import Flask, request, jsonify, render_template_string
+from flask_sqlalchemy import SQLAlchemy
 from flask_socketio import SocketIO
 import folium
 import json
@@ -11,11 +12,35 @@ from math import radians, sin, cos, sqrt, atan2
 app = Flask(__name__)
 socketio = SocketIO(app)
 
+# Configure SQLite database
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///locations.db'  # Path to SQLite database file
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+# Initialize SQLAlchemy
+db = SQLAlchemy(app)
+
+# Define Database Models
+class User(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    device_id = db.Column(db.String(255), unique=True, nullable=False)  # Unique device ID
+    name = db.Column(db.String(255), nullable=False)  # User's name
+
+class Location(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    latitude = db.Column(db.Float, nullable=False)
+    longitude = db.Column(db.Float, nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    user = db.relationship('User', backref=db.backref('locations', lazy=True))
+    
+# Create tables
+with app.app_context():
+    db.create_all()
+
 # Store the latest location
-latest_location = {"latitude": None, "longitude": None, "deviceID": None}
+# latest_location = {"latitude": None, "longitude": None, "deviceID": None}
 
 # Predefined locations
-locations = {
+predef_locations = {
     "home": {"latitude": 22.991497097547864, "longitude": 72.60979031749606},  # Replace with your home coordinates
     "office": {"latitude": 23.152755532906006, "longitude": 72.5432677652376}  # Replace with Adani Shantigram coordinates
 }
@@ -62,7 +87,7 @@ def home():
 
 @app.route("/update_location", methods=["POST"])
 def update_location():
-    global latest_location
+    # global latest_location
     data = request.json  # Extract the JSON payload
 
     # Check for deviceId in the payload
@@ -73,21 +98,32 @@ def update_location():
         try:
             # Parse the JSON string under "Text"
             parsed_data = json.loads(data["Text"])
-            latest_location["latitude"] = parsed_data["latitude"]
-            latest_location["longitude"] = parsed_data["longitude"]
-            latest_location["deviceId"] = device_id  # Update with device ID
+            latitude = parsed_data["latitude"]
+            longitude = parsed_data["longitude"]
+            # latest_location["deviceId"] = device_id  # Update with device ID
             # print(f"Updated Location: {latest_location}")
+            
+            # Find or create user
+            user = User.query.filter_by(device_id=device_id).first()
+            if not user:
+                user = User(device_id=device_id, name=data.get("userName", "Unknown User"))
+                db.session.add(user)
+                db.session.commit()
 
-            # Calculate the sum of latitude and longitude
-            # lat_long_sum = latest_location["latitude"] + latest_location["longitude"]
+            # Save location
+            location = Location(latitude=latitude, longitude=longitude, user_id=user.id)
+            db.session.add(location)
+            db.session.commit()
 
             # Check for the proximity to know locations
-            proximity = location_status(latest_location,locations)
+            latest_location_for_proximity = {"latitude": latitude, "longitude": longitude}
+            proximity = location_status(latest_location_for_proximity,predef_locations)
 
             # Notify clients to refresh the map
             socketio.emit('refresh_map', {'message': 'New location received'})
 
-            return jsonify({"status": "success", "message": "Location updated!", "prox_status": proximity[0], "dist": proximity[1], "notify": proximity[2], "deviceId": device_id,}), 200
+            return jsonify({"status": "success", "message": "Location updated!", "prox_status": proximity[0], "dist": proximity[1], "notify": proximity[2], "deviceId": device_id}), 200
+        
         except json.JSONDecodeError:
             return jsonify({"status": "error", "message": "Invalid JSON format in 'Text' key"}), 400
 
@@ -101,19 +137,39 @@ def get_instructions():
         "requestLocation": True
     }), 200
 
+@app.route("/get_users", methods=["GET"])
+def get_users():
+    users = User.query.all()
+    user_data = [{"id": user.id, "name": user.name, "device_id": user.device_id} for user in users]
+    return jsonify(user_data), 200
+
+@app.route("/get_locations", methods=["GET"])
+def get_locations():
+    locations = Location.query.all()
+    location_data = [
+        {
+            "id": location.id,
+            "latitude": location.latitude,
+            "longitude": location.longitude,
+            "user_id": location.user_id,
+            "user_name": location.user.name,
+        }
+        for location in locations
+    ]
+    return jsonify(location_data), 200
+
 @app.route("/show_map", methods=["GET"])
 def show_map():
-    if latest_location["latitude"] and latest_location["longitude"]:
-        # Generate a map dynamically
-        location_map = folium.Map(
-            location=[latest_location["latitude"], latest_location["longitude"]], zoom_start=15
-        )
+    latest_location = Location.query.order_by(Location.id.desc()).first()
+    if latest_location:
+        user = User.query.get(latest_location.user_id)
+        location_map = folium.Map(location=[latest_location.latitude, latest_location.longitude], zoom_start=15)
         folium.Marker(
-            [latest_location["latitude"], latest_location["longitude"]],
-            popup=f"Device: {latest_location['deviceId']}",
-            icon=folium.Icon(color="blue", icon="info-sign")
+            [latest_location.latitude, latest_location.longitude],
+            popup=f"Device: {user.device_id} ({user.name})",
+            icon=folium.Icon(color="blue", icon="info-sign"),
         ).add_to(location_map)
-        map_html = location_map._repr_html_()  # Render the map as an HTML string
+        map_html = location_map._repr_html_()
 
         # Return the map embedded with WebSocket support
         html_template = f"""
