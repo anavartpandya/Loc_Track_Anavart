@@ -89,6 +89,14 @@ def update_location():
 
     return jsonify({"status": "error", "message": "Invalid data structure"}), 400
 
+@app.route('/get_instructions', methods=['GET'])
+def get_instructions():
+    # For example, always tell the app: "We want your location" (requestLocation = true)
+    return jsonify({
+        "message": "Hello from the server!",
+        "requestLocation": True
+    }), 200
+
 @app.route("/show_map", methods=["GET"])
 def show_map():
     if latest_location["latitude"] and latest_location["longitude"]:
