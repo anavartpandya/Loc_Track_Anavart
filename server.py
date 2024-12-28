@@ -13,7 +13,7 @@ app = Flask(__name__)
 socketio = SocketIO(app)
 
 # Configure SQLite database
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///locations.db'  # Path to SQLite database file
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://loc_track_anavart_database_user:IZVtXm7dwnBw6lDSEqZajkFvFBoTDc8t@dpg-ctnth2t2ng1s73bf0un0-a/loc_track_anavart_database'  # Path to SQLite database file
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # Initialize SQLAlchemy
