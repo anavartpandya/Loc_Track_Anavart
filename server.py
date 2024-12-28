@@ -83,7 +83,7 @@ def update_location():
             # Notify clients to refresh the map
             socketio.emit('refresh_map', {'message': 'New location received'})
 
-            return jsonify({"status": "success", "message": "Yaay!!", "prox_status": proximity[0], "dist": proximity[1], "notify": proximity[2]}), 200
+            return jsonify({"status": "success", "message": "Location updated!", "prox_status": proximity[0], "dist": proximity[1], "notify": proximity[2]}), 200
         except json.JSONDecodeError:
             return jsonify({"status": "error", "message": "Invalid JSON format in 'Text' key"}), 400
 
