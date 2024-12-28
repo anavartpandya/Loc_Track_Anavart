@@ -12,7 +12,7 @@ app = Flask(__name__)
 socketio = SocketIO(app)
 
 # Store the latest location
-latest_location = {"latitude": None, "longitude": None}
+latest_location = {"latitude": None, "longitude": None, "deviceID": None}
 
 # Predefined locations
 locations = {
@@ -65,6 +65,9 @@ def update_location():
     global latest_location
     data = request.json  # Extract the JSON payload
 
+    # Check for deviceId in the payload
+    device_id = data.get("deviceId", "Unknown Device")
+
     # Check if the data is encapsulated under the "Text" key
     if "Text" in data:
         try:
@@ -72,7 +75,8 @@ def update_location():
             parsed_data = json.loads(data["Text"])
             latest_location["latitude"] = parsed_data["latitude"]
             latest_location["longitude"] = parsed_data["longitude"]
-            print(f"Updated Location: {latest_location}")
+            latest_location["deviceId"] = device_id  # Update with device ID
+            # print(f"Updated Location: {latest_location}")
 
             # Calculate the sum of latitude and longitude
             # lat_long_sum = latest_location["latitude"] + latest_location["longitude"]
@@ -83,7 +87,7 @@ def update_location():
             # Notify clients to refresh the map
             socketio.emit('refresh_map', {'message': 'New location received'})
 
-            return jsonify({"status": "success", "message": "Location updated!", "prox_status": proximity[0], "dist": proximity[1], "notify": proximity[2]}), 200
+            return jsonify({"status": "success", "message": "Location updated!", "prox_status": proximity[0], "dist": proximity[1], "notify": proximity[2], "deviceId": device_id,}), 200
         except json.JSONDecodeError:
             return jsonify({"status": "error", "message": "Invalid JSON format in 'Text' key"}), 400
 
@@ -106,7 +110,7 @@ def show_map():
         )
         folium.Marker(
             [latest_location["latitude"], latest_location["longitude"]],
-            popup="Phone Location",
+            popup=f"Device: {latest_location['deviceId']}",
             icon=folium.Icon(color="blue", icon="info-sign")
         ).add_to(location_map)
         map_html = location_map._repr_html_()  # Render the map as an HTML string
