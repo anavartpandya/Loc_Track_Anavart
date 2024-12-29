@@ -183,9 +183,9 @@ export default function HomeScreen() {
         </ThemedText>
       </ThemedView>
 
-      <ThemedView style={styles.bodyContainer}>
+      {/* <ThemedView style={styles.bodyContainer}>
         <Button title="Fetch Server Instructions" onPress={fetchServerInstructions} />
-      </ThemedView>
+      </ThemedView> */}
 
       <ThemedView style={styles.bodyContainer}>
         <Button title="Send Location" onPress={handleSendLocation} />
