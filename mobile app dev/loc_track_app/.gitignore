@@ -5,5 +5,3 @@
 expo-env.d.ts
 # @end expo-cli
 
-# Node modules
-mobile app dev/loc_track_app/node_modules/
