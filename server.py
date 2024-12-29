@@ -9,6 +9,8 @@ import json
 
 from math import radians, sin, cos, sqrt, atan2
 
+import requests
+
 app = Flask(__name__)
 socketio = SocketIO(app)
 
@@ -81,6 +83,29 @@ def location_status(latest_location,locations):
     
     return [proximity_status, int(distance), notify]
 
+def get_location_name(latitude, longitude):
+    """
+    Use Nominatim Reverse Geocoding to get a human-readable address from latitude and longitude.
+    """
+    try:
+        url = f"https://nominatim.openstreetmap.org/reverse"
+        params = {
+            "lat": latitude,
+            "lon": longitude,
+            "format": "json",
+            "addressdetails": 1
+        }
+        response = requests.get(url, params=params)
+        if response.status_code == 200:
+            data = response.json()
+            # Extract the location name from the response
+            return data.get("display_name", "Unknown Location")
+        else:
+            return "Unknown Location"
+    except Exception as e:
+        print(f"Error in reverse geocoding: {e}")
+        return "Unknown Location"
+
 @app.route('/')
 def home():
     return "Flask server is running!", 200
@@ -119,10 +144,18 @@ def update_location():
             latest_location_for_proximity = {"latitude": latitude, "longitude": longitude}
             proximity = location_status(latest_location_for_proximity,predef_locations)
 
+            # Get the exact location name using reverse geocoding
+            location_name = get_location_name(latitude, longitude)
+
             # Notify clients to refresh the map
             socketio.emit('refresh_map', {'message': 'New location received'})
 
-            return jsonify({"status": "success", "message": "Location updated!", "prox_status": proximity[0], "dist": proximity[1], "notify": proximity[2], "deviceId": device_id}), 200
+            return jsonify({
+                "status": "success", 
+                "message": f"You are currently at {location_name}.", 
+                "prox_status": proximity[0], "dist": proximity[1], 
+                "notify": proximity[2], 
+                "deviceId": device_id}), 200
         
         except json.JSONDecodeError:
             return jsonify({"status": "error", "message": "Invalid JSON format in 'Text' key"}), 400
@@ -163,10 +196,19 @@ def show_map():
     latest_location = Location.query.order_by(Location.id.desc()).first()
     if latest_location:
         user = User.query.get(latest_location.user_id)
+
+        # Get the human-readable location name
+        location_name = get_location_name(latest_location.latitude, latest_location.longitude)
+
         location_map = folium.Map(location=[latest_location.latitude, latest_location.longitude], zoom_start=15)
         folium.Marker(
             [latest_location.latitude, latest_location.longitude],
-            popup=f"Device: {user.device_id} ({user.name})",
+            popup=f"""
+            <b>Device:</b> {user.device_id} ({user.name})<br>
+            <b>Location:</b> {location_name}
+            # <b>Latitude:</b> {latest_location.latitude}<br>
+            # <b>Longitude:</b> {latest_location.longitude}
+            """,
             icon=folium.Icon(color="blue", icon="info-sign"),
         ).add_to(location_map)
         map_html = location_map._repr_html_()
