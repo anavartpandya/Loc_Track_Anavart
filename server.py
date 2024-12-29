@@ -95,7 +95,10 @@ def get_location_name(latitude, longitude):
             "format": "json",
             "addressdetails": 1
         }
-        response = requests.get(url, params=params)
+        headers = {
+            "User-Agent": "YourAppName/1.0 (your_email@example.com)"  # Replace with your app name and contact info
+        }
+        response = requests.get(url, params=params, headers=headers)
         if response.status_code == 200:
             data = response.json()
             # Extract the location name from the response
