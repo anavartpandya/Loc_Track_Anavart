@@ -4,3 +4,6 @@ flask-socketio>=5.0.0
 flask_sqlalchemy>=2.0.36
 eventlet>=0.33.
 psycopg2
+
+# pghero-5e023115
+# 5f28232d54127e947c07c121fe19cd00
