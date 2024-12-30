@@ -157,6 +157,7 @@ export default function HomeScreen() {
         ) : (
           <View>
             <ThemedText type="subtitle">Welcome, {userName}!</ThemedText>
+            {/* <ThemedText type="subtitle">તમારું સ્વાગત છે {userName}!</ThemedText> */}
             <Button title="Edit Name" onPress={() => setIsEditing(true)} />
           </View>
         )}
