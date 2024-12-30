@@ -24,8 +24,8 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 # Initialize SQLAlchemy
 db = SQLAlchemy(app)
 
-world = gpd.read_file(gpd.datasets.get_path('naturalearth_lowres'))
-
+# world = gpd.read_file(gpd.datasets.get_path('naturalearth_lowres'))
+world = gpd.read_file("ne_110m_admin_0_countries.shp")
 
 # Define Database Models
 class User(db.Model):
@@ -127,11 +127,11 @@ def rate_chart(world):
 
     world['Rating'] = [10]*len(world)
     for i in range(len(world)):
-        if world['name'][i] in Tier1_Countries:
+        if world['ADMIN'][i] in Tier1_Countries:
             world['Rating'][i] = 100
-        elif world['name'][i] in Tier2_Countries:
+        elif world['ADMIN'][i] in Tier2_Countries:
             world['Rating'][i] = 60
-        elif world['name'][i] in Tier3_Countries:
+        elif world['ADMIN'][i] in Tier3_Countries:
             world['Rating'][i] = 40
     
     return world
