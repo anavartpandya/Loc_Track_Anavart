@@ -3,6 +3,10 @@ folium>=0.12.1
 flask-socketio>=5.0.0
 flask_sqlalchemy>=2.0.36
 eventlet>=0.33.
+geopandas
+shapely
+pyproj
+fiona
 psycopg2
 
 # pghero-5e023115
