@@ -11,6 +11,9 @@ from math import radians, sin, cos, sqrt, atan2
 
 import requests
 
+import geopandas as gpd
+from shapely.geometry import Point
+
 app = Flask(__name__)
 socketio = SocketIO(app)
 
@@ -20,6 +23,9 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # Initialize SQLAlchemy
 db = SQLAlchemy(app)
+
+world = gpd.read_file(gpd.datasets.get_path('naturalearth_lowres'))
+
 
 # Define Database Models
 class User(db.Model):
@@ -108,6 +114,35 @@ def get_location_name(latitude, longitude):
     except Exception as e:
         print(f"Error in reverse geocoding: {e}")
         return "Unknown Location"
+    
+def get_point(lat, lon):
+    return Point(lon, lat)
+
+
+def rate_chart(world):
+
+    Tier1_Countries = ['India']
+    Tier2_Countries = ['United Kingdom', 'South Africa', 'Kenya', 'Canada']
+    Tier3_Countries = ['United Arab Emirates', 'United States of America']
+
+    world['Rating'] = [10]*len(world)
+    for i in range(len(world)):
+        if world['name'][i] in Tier1_Countries:
+            world['Rating'][i] = 100
+        elif world['name'][i] in Tier2_Countries:
+            world['Rating'][i] = 60
+        elif world['name'][i] in Tier3_Countries:
+            world['Rating'][i] = 40
+    
+    return world
+
+def get_country_rating(lat, lon, world):
+    rated_world = rate_chart(world)
+    point = get_point(lat, lon)
+    for _, country in rated_world.iterrows():
+        if country['geometry'].contains(point):
+            return country['Rating']
+    return 0
 
 @app.route('/')
 def home():
@@ -150,12 +185,14 @@ def update_location():
             # Get the exact location name using reverse geocoding
             location_name = get_location_name(latitude, longitude)
 
+            location_rating = get_country_rating(latitude, longitude, world)
+
             # Notify clients to refresh the map
             socketio.emit('refresh_map', {'message': 'New location received'})
 
             return jsonify({
                 "status": "success", 
-                "message": f"You are currently at {location_name}.", 
+                "message": f"You are currently at {location_name}. Rating for this location is {location_rating}", 
                 "prox_status": proximity[0], "dist": proximity[1], 
                 "notify": proximity[2], 
                 "deviceId": device_id}), 200
