@@ -8,6 +8,7 @@
     "scheme": "myapp",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
+    "assetBundlePatterns": ["assets/sounds/**/*"],
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.anavart.pandya.loc-track-app-ios"
