@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Text, StyleSheet, Platform, Image, TextInput, View, TouchableOpacity, SafeAreaView } from 'react-native';
+import { Text, StyleSheet, Platform, Image, TextInput, View, TouchableOpacity, SafeAreaView, Dimensions } from 'react-native';
 // import { VStack, Box, Button, Input, Card, Heading, Text, useToast, Icon } from 'native-base';
 import axios from 'axios';
 import * as Location from 'expo-location';
@@ -45,6 +45,7 @@ const sendNotification = async (message: string) => {
 export default function HomeScreen() {
   // 1) State variables
   const [serverMessage, setServerMessage] = useState<string>('');
+  const [Rating, setRating] = useState<string>('');
   const [locationStatus, setLocationStatus] = useState<string>('');
   const [coords, setCoords] = useState<{ latitude: number; longitude: number }>({
     latitude: 0,
@@ -162,6 +163,7 @@ export default function HomeScreen() {
       const response = await axios.post(`${SERVER_URL}/update_location`, payload);
       // response.data might be: { status: "success", message: "Location updated!", ... }
       setServerMessage(response.data.message || 'Location sent successfully!');
+      setRating(response.data.dist || 0);
       setLocationStatus('Location sent!');
 
       // Trigger a notification with the server message
@@ -381,6 +383,8 @@ export default function HomeScreen() {
 //   },
 // });
 
+
+
 return (
   <SafeAreaView style={styles.container}>
     {/* Header */}
@@ -411,52 +415,72 @@ return (
     )}
 
     {/* Welcome Section */}
-    <Text style={styles.welcomeText}>Welcome, {userName || 'Guest'}!</Text>
+    <Text style={styles.welcomeText}>Jay Swaminarayan, {userName || 'Guest'} Bhagat!</Text>
+
+    <View style={styles.container}>
+      {/* Rating Bar */}
+      <View style={styles.barContainer}>
+        <View style={[styles.filledBar, { flex: Rating / 100 }]} />
+        <View style={[styles.emptyBar, { flex: (100 - Rating) / 100 }]} />
+      </View>
+
+      {/* Rating Text */}
+      <Text style={styles.ratingText}>{Rating}%</Text>
+    </View>
 
     {/* Main Content */}
     <View style={styles.mainContent}>
       <View style={styles.card}>
         <Text style={styles.cardTitle}>Server Message</Text>
         <Text style={styles.cardText}>{serverMessage}</Text>
+        <Text style={styles.cardText}>
+          {"\n\n"}
+          Coords: {coords.latitude.toFixed(2)}, {coords.longitude.toFixed(2)}
+          {"\n"}
+        </Text>
       </View>
-      <View style={styles.card}>
+      {/* <View style={styles.card}>
         <Text style={styles.cardTitle}>Location Status</Text>
         <Text style={styles.cardText}>Status: {locationStatus}</Text>
         <Text style={styles.cardText}>
           Coords: {coords.latitude.toFixed(2)}, {coords.longitude.toFixed(2)}
         </Text>
-      </View>
+      </View> */}
     </View>
 
     {/* Send Location Button */}
     <TouchableOpacity style={styles.sendLocationButton} onPress={handleSendLocation}>
       <Text style={styles.sendLocationText}>Send Location</Text>
     </TouchableOpacity>
-  </SafeAreaView>
+  // </SafeAreaView>
 );
 }
+const { width, height } = Dimensions.get('window');
 
 const styles = StyleSheet.create({
 container: {
   flex: 1,
-  backgroundColor: '#F7F9FC',
-  paddingHorizontal: 20,
+  backgroundColor: '#f7eada',
+  paddingHorizontal: Platform.OS === 'ios' ? 20 : 20,
 },
 header: {
   flexDirection: 'row',
   alignItems: 'center',
-  justifyContent: 'space-between',
-  marginTop: Platform.OS === 'ios' ? 50 : 20, // Adjust for safe area (iOS Dynamic Island)
-  marginBottom: 20,
+  justifyContent: 'flex-start',
+  marginTop: Platform.OS === 'ios' ? height*0.01 : height*0.05, // Adjust for safe area (iOS Dynamic Island)
+  marginBottom: Platform.OS === 'ios' ? height*0.01 : height*0.05, // Adjust for safe area (iOS Dynamic Island)
 },
 logo: {
-  width: 50,
-  height: 50,
+  width: width*0.1,
+  height: width*0.1,
+  marginHorizontal: Platform.OS === 'ios' ? width*0.02 : width*0.0,
 },
 appName: {
   fontSize: 28,
+  alignContent: 'flex-start',
   fontWeight: 'bold',
   fontFamily: 'serif',
+  textAlign: 'left',
   color: '#2D5D7A',
 },
 editIcon: {
@@ -495,19 +519,44 @@ welcomeText: {
   fontSize: 22,
   fontWeight: '600',
   textAlign: 'center',
+  fontFamily: 'serif',
   marginBottom: 20,
+  color: '#333',
+},
+barContainer: {
+  width: 50,
+  height: 200, // Total height of the bar
+  backgroundColor: '#e0e0e0',
+  borderRadius: 10,
+  overflow: 'hidden',
+  flexDirection: 'column-reverse', // Fill from bottom to top
+},
+filledBar: {
+  backgroundColor: '#28A745', // Green for the filled part
+  borderTopLeftRadius: 10,
+  borderTopRightRadius: 10,
+},
+emptyBar: {
+  backgroundColor: '#f7f7f7', // Light gray for the unfilled part
+},
+ratingText: {
+  fontSize: 18,
+  fontWeight: 'bold',
+  marginTop: 10,
   color: '#333',
 },
 mainContent: {
   flex: 1,
   justifyContent: 'space-around',
-  marginBottom: 20,
+  marginBottom: -width*0.7,
 },
 card: {
   padding: 20,
-  borderRadius: 10,
+  height: 200,
+  borderRadius: 20,
   backgroundColor: '#FFF',
   elevation: 5,
+  marginHorizontal: Platform.OS === 'ios' ? width*0.1 : width*0.05,
   shadowColor: '#000',
   shadowOffset: { width: 0, height: 2 },
   shadowOpacity: 0.2,
@@ -515,20 +564,25 @@ card: {
 },
 cardTitle: {
   fontSize: 20,
+  fontFamily: 'serif',
   fontWeight: 'bold',
   marginBottom: 10,
+  textAlign: 'center',
   color: '#555',
 },
 cardText: {
   fontSize: 16,
+  fontFamily: 'serif',
   color: '#555',
+  textAlign: 'center',
 },
 sendLocationButton: {
   backgroundColor: '#28A745',
   padding: 15,
   borderRadius: 10,
   alignItems: 'center',
-  marginBottom: Platform.OS === 'ios' ? 30 : 20, // Adjust for safe area
+  marginHorizontal: Platform.OS === 'ios' ? width*0.25 : width*0.2,
+  marginBottom: Platform.OS === 'ios' ? height*0.1 : height*0.05, // Adjust for safe area
 },
 sendLocationText: {
   fontSize: 18,

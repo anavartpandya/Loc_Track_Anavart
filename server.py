@@ -192,9 +192,11 @@ def update_location():
 
             return jsonify({
                 "status": "success", 
-                "message": f"You are currently at {location_name}. Rating for this location is {location_rating}", 
-                "prox_status": proximity[0], "dist": proximity[1], 
-                "notify": proximity[2], 
+                "message": f"You are currently at {location_name}.\n Rating for this location is {location_rating}", 
+                "prox_status": proximity[0], 
+                "dist": proximity[1], 
+                "notify": proximity[2],
+                "Rating": int(location_rating), 
                 "deviceId": device_id}), 200
         
         except json.JSONDecodeError:
