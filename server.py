@@ -181,11 +181,6 @@ def update_location():
             db.session.add(location)
             db.session.commit()
 
-            # Save location
-            location = Location(latitude=latitude, longitude=longitude, user_id=user.id)
-            db.session.add(location)
-            db.session.commit()
-
             # Check for the proximity to know locations
             latest_location_for_proximity = {"latitude": latitude, "longitude": longitude}
             proximity = location_status(latest_location_for_proximity,predef_locations)
