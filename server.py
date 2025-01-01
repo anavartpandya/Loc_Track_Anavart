@@ -14,6 +14,8 @@ import requests
 import geopandas as gpd
 from shapely.geometry import Point
 
+from datetime import datetime
+
 app = Flask(__name__)
 socketio = SocketIO(app)
 
@@ -39,6 +41,7 @@ class Location(db.Model):
     longitude = db.Column(db.Float, nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     user = db.relationship('User', backref=db.backref('locations', lazy=True))
+    timestamp = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     
 # Create tables
 with app.app_context():
