@@ -8,6 +8,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Network from 'expo-network';
 import { MaterialIcons } from '@expo/vector-icons';
 
+
 // import { HelloWave } from '@/components/HelloWave';
 import { PinDrop } from '@/components/PinDrop';
 import ParallaxScrollView from '@/components/ParallaxScrollView';
@@ -15,6 +16,7 @@ import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 
 import * as Notifications from 'expo-notifications';
+import { Icon } from 'native-base';
 // import Constants from 'expo-constants';
 
 // Replace this with your actual Render server URL:
@@ -45,7 +47,7 @@ const sendNotification = async (message: string) => {
 export default function HomeScreen() {
   // 1) State variables
   const [serverMessage, setServerMessage] = useState<string>('');
-  const [Rating, setRating] = useState<string>('');
+  const [Rating, setRating] = useState<number>(0);
   const [locationStatus, setLocationStatus] = useState<string>('');
   const [coords, setCoords] = useState<{ latitude: number; longitude: number }>({
     latitude: 0,
@@ -163,7 +165,7 @@ export default function HomeScreen() {
       const response = await axios.post(`${SERVER_URL}/update_location`, payload);
       // response.data might be: { status: "success", message: "Location updated!", ... }
       setServerMessage(response.data.message || 'Location sent successfully!');
-      setRating(response.data.dist || 0);
+      setRating(response.data.Rating || 0);
       setLocationStatus('Location sent!');
 
       // Trigger a notification with the server message
@@ -389,13 +391,15 @@ return (
   <SafeAreaView style={styles.container}>
     {/* Header */}
     <View style={styles.header}>
-      <Image
-        source={require('@/assets/images/location_track_logo.png')}
-        style={styles.logo}
-      />
+      <View style={styles.logo_container}>
+        <Image
+          source={require('@/assets/images/location_track_logo.png')}
+          style={styles.logo}
+        />
+      </View>
       <Text style={styles.appName}>Moksh</Text>
       <TouchableOpacity onPress={() => setIsEditing(!isEditing)} style={styles.editIcon}>
-        <Text style={styles.editText}>✏️</Text>
+        <MaterialIcons name="menu" size={34} color="000" />
       </TouchableOpacity>
     </View>
 
@@ -420,12 +424,13 @@ return (
     <View style={styles.container}>
       {/* Rating Bar */}
       <View style={styles.barContainer}>
-        <View style={[styles.filledBar, { flex: Rating / 100 }]} />
-        <View style={[styles.emptyBar, { flex: (100 - Rating) / 100 }]} />
+        <View style={[styles.filledBar, { flex: Rating / 100 }]}>
+        <Text style={styles.ratingText}>{Rating}%</Text>
+        </View>
+        <View style={[styles.emptyBar, { flex: (100 - Rating) / 100 }]}>
+        {/* <Text style={styles.ratingText}>{Rating}%</Text> */}
+        </View>
       </View>
-
-      {/* Rating Text */}
-      <Text style={styles.ratingText}>{Rating}%</Text>
     </View>
 
     {/* Main Content */}
@@ -467,8 +472,15 @@ header: {
   flexDirection: 'row',
   alignItems: 'center',
   justifyContent: 'flex-start',
+  paddingHorizontal: Platform.OS === 'ios' ? 2 : 2,
   marginTop: Platform.OS === 'ios' ? height*0.01 : height*0.05, // Adjust for safe area (iOS Dynamic Island)
-  marginBottom: Platform.OS === 'ios' ? height*0.01 : height*0.05, // Adjust for safe area (iOS Dynamic Island)
+  marginBottom: Platform.OS === 'ios' ? height*0.01 : height*0.01, // Adjust for safe area (iOS Dynamic Island)
+},
+logo_container: {
+  width: width*0.1,
+  height: width*0.1,
+  marginHorizontal: Platform.OS === 'ios' ? width*0.02 : width*0.0,
+  borderRadius: 40,
 },
 logo: {
   width: width*0.1,
@@ -481,12 +493,16 @@ appName: {
   fontWeight: 'bold',
   fontFamily: 'serif',
   textAlign: 'left',
-  color: '#2D5D7A',
+  paddingStart: width*0.03,
+  color: '#28A745',
 },
 editIcon: {
   padding: 8,
-  borderRadius: 20,
-  backgroundColor: '#E8EAF6',
+  borderRadius: 2,
+  backgroundColor: '#f7eada',
+  alignSelf: 'center',
+  alignItems: 'center',
+  marginHorizontal: Platform.OS === 'ios' ? width*0.45 : width*0.4,
 },
 editText: {
   fontSize: 20,
@@ -495,7 +511,9 @@ editText: {
 editSection: {
   flexDirection: 'row',
   alignItems: 'center',
-  marginBottom: 20,
+  marginVertical: Platform.OS === 'ios' ? height*0.01 : height*0.01,
+  // marginBottom: Platform.OS === 'ios' ? height*0.1 : height*0.05,
+  marginHorizontal: Platform.OS === 'ios' ? width*0.1 : width*0.05,
 },
 input: {
   flex: 1,
@@ -507,7 +525,7 @@ input: {
   fontSize: 16,
 },
 saveButton: {
-  backgroundColor: '#007BFF',
+  backgroundColor: '#28A745',
   padding: 10,
   borderRadius: 8,
 },
@@ -524,31 +542,50 @@ welcomeText: {
   color: '#333',
 },
 barContainer: {
-  width: 50,
-  height: 200, // Total height of the bar
+  width: width*0.3,
+  height: height*0.3, // Total height of the bar
   backgroundColor: '#e0e0e0',
   borderRadius: 10,
   overflow: 'hidden',
   flexDirection: 'column-reverse', // Fill from bottom to top
+  justifyContent: 'center', // Center content vertically
+  alignItems: 'center', // Center content horizontally  
+  alignSelf: 'center',
 },
 filledBar: {
   backgroundColor: '#28A745', // Green for the filled part
-  borderTopLeftRadius: 10,
-  borderTopRightRadius: 10,
+  // borderTopLeftRadius: 10,
+  // borderTopRightRadius: 10,
+  justifyContent: 'center', // Center content vertically
+  alignItems: 'center', // Center content horizontally 
+  width: width*0.3,
+  // marginBottom: width*0.05,
 },
 emptyBar: {
+  // borderTopLeftRadius: 10,
+  // borderTopRightRadius: 10,  
   backgroundColor: '#f7f7f7', // Light gray for the unfilled part
+  justifyContent: 'center', // Center content vertically
+  alignItems: 'center', // Center content horizontally  
+  width: width*0.3,
 },
 ratingText: {
-  fontSize: 18,
+  // position: 'absolute',
+  fontSize: 10,
   fontWeight: 'bold',
-  marginTop: 10,
-  color: '#333',
+  alignItems: 'center',
+  // marginTop: width*0.01,
+  // textAlignVertical: 'center',
+  textAlign: 'center',
+  // color: '#333',
+  color: '#FFF',
+
 },
 mainContent: {
   flex: 1,
   justifyContent: 'space-around',
-  marginBottom: -width*0.7,
+  marginBottom: -width*0,
+  paddingTop: height*0.,
 },
 card: {
   padding: 20,
