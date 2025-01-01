@@ -17,6 +17,7 @@ import { ThemedView } from '@/components/ThemedView';
 
 import * as Notifications from 'expo-notifications';
 import { Icon } from 'native-base';
+import { setStatusBarBackgroundColor } from 'expo-status-bar';
 // import Constants from 'expo-constants';
 
 // Replace this with your actual Render server URL:
@@ -388,18 +389,18 @@ export default function HomeScreen() {
 
 
 return (
-  <SafeAreaView style={styles.container}>
+  <View style={styles.container}>
     {/* Header */}
     <View style={styles.header}>
-      <View style={styles.logo_container}>
-        <Image
-          source={require('@/assets/images/location_track_logo.png')}
-          style={styles.logo}
-        />
-      </View>
-      <Text style={styles.appName}>Moksh</Text>
+      {/* <View style={styles.logo_container}> */}
+      <Image
+        source={require('@/assets/images/Moksh_Logo.png')}
+        style={styles.logo}
+      />
+      {/* </View> */}
+      {/* <Text style={styles.appName}>Moksh</Text> */}
       <TouchableOpacity onPress={() => setIsEditing(!isEditing)} style={styles.editIcon}>
-        <MaterialIcons name="menu" size={34} color="000" />
+        <MaterialIcons name="menu" size={34} color="#000" />
       </TouchableOpacity>
     </View>
 
@@ -457,10 +458,17 @@ return (
     <TouchableOpacity style={styles.sendLocationButton} onPress={handleSendLocation}>
       <Text style={styles.sendLocationText}>Send Location</Text>
     </TouchableOpacity>
-  // </SafeAreaView>
+  </View>
 );
 }
 const { width, height } = Dimensions.get('window');
+// const [Background_Color, setBackgroundColor] = useState<string>('');
+// const [Default_Text_Color, setDefaultTextColor] = useState<string>('');
+// const Background_Color= useState<string>('#f7eada');
+// const Default_Text_Color = useState<string>('#333');
+
+// setBackgroundColor('#f7eada');
+// setDefaultTextColor('#333');
 
 const styles = StyleSheet.create({
 container: {
@@ -473,7 +481,7 @@ header: {
   alignItems: 'center',
   justifyContent: 'flex-start',
   paddingHorizontal: Platform.OS === 'ios' ? 2 : 2,
-  marginTop: Platform.OS === 'ios' ? height*0.01 : height*0.05, // Adjust for safe area (iOS Dynamic Island)
+  marginTop: Platform.OS === 'ios' ? height*0.07 : height*0.05, // Adjust for safe area (iOS Dynamic Island)
   marginBottom: Platform.OS === 'ios' ? height*0.01 : height*0.01, // Adjust for safe area (iOS Dynamic Island)
 },
 logo_container: {
@@ -483,9 +491,9 @@ logo_container: {
   borderRadius: 40,
 },
 logo: {
-  width: width*0.1,
-  height: width*0.1,
-  marginHorizontal: Platform.OS === 'ios' ? width*0.02 : width*0.0,
+  width: width*0.35,
+  height: width*0.107,
+  marginHorizontal: Platform.OS === 'ios' ? width*0.0 : width*0.0,
 },
 appName: {
   fontSize: 28,
@@ -493,27 +501,27 @@ appName: {
   fontWeight: 'bold',
   fontFamily: 'serif',
   textAlign: 'left',
-  paddingStart: width*0.03,
-  color: '#28A745',
+  paddingStart: Platform.OS === 'ios' ? width*0.0 : width*0.02,
+  color: '#cf6113',
 },
 editIcon: {
-  padding: 8,
+  padding: 1,
   borderRadius: 2,
   backgroundColor: '#f7eada',
-  alignSelf: 'center',
-  alignItems: 'center',
-  marginHorizontal: Platform.OS === 'ios' ? width*0.45 : width*0.4,
+  // alignSelf: 'center',
+  // alignItems: 'center',
+  marginHorizontal: Platform.OS === 'ios' ? width*0.4 : width*0.4,
 },
 editText: {
   fontSize: 20,
-  color: '#555',
+  color: '#333',
 },
 editSection: {
   flexDirection: 'row',
   alignItems: 'center',
   marginVertical: Platform.OS === 'ios' ? height*0.01 : height*0.01,
   // marginBottom: Platform.OS === 'ios' ? height*0.1 : height*0.05,
-  marginHorizontal: Platform.OS === 'ios' ? width*0.1 : width*0.05,
+  marginHorizontal: Platform.OS === 'ios' ? width*0.05 : width*0.05,
 },
 input: {
   flex: 1,
@@ -525,7 +533,7 @@ input: {
   fontSize: 16,
 },
 saveButton: {
-  backgroundColor: '#28A745',
+  backgroundColor: '#cf6113',
   padding: 10,
   borderRadius: 8,
 },
@@ -553,7 +561,8 @@ barContainer: {
   alignSelf: 'center',
 },
 filledBar: {
-  backgroundColor: '#28A745', // Green for the filled part
+  // backgroundColor: '#28A745', // Green for the filled part
+  backgroundColor: '#cf6113', // Green for the filled part
   // borderTopLeftRadius: 10,
   // borderTopRightRadius: 10,
   justifyContent: 'center', // Center content vertically
@@ -571,7 +580,7 @@ emptyBar: {
 },
 ratingText: {
   // position: 'absolute',
-  fontSize: 10,
+  fontSize: 18,
   fontWeight: 'bold',
   alignItems: 'center',
   // marginTop: width*0.01,
@@ -593,7 +602,7 @@ card: {
   borderRadius: 20,
   backgroundColor: '#FFF',
   elevation: 5,
-  marginHorizontal: Platform.OS === 'ios' ? width*0.1 : width*0.05,
+  marginHorizontal: Platform.OS === 'ios' ? width*0.05 : width*0.05,
   shadowColor: '#000',
   shadowOffset: { width: 0, height: 2 },
   shadowOpacity: 0.2,
@@ -610,16 +619,16 @@ cardTitle: {
 cardText: {
   fontSize: 16,
   fontFamily: 'serif',
-  color: '#555',
+  color: '#333',
   textAlign: 'center',
 },
 sendLocationButton: {
-  backgroundColor: '#28A745',
+  backgroundColor: '#cf6113',
   padding: 15,
   borderRadius: 10,
   alignItems: 'center',
-  marginHorizontal: Platform.OS === 'ios' ? width*0.25 : width*0.2,
-  marginBottom: Platform.OS === 'ios' ? height*0.1 : height*0.05, // Adjust for safe area
+  marginHorizontal: Platform.OS === 'ios' ? width*0.25 : width*0.25,
+  marginBottom: Platform.OS === 'ios' ? height*0.12 : height*0.05, // Adjust for safe area
 },
 sendLocationText: {
   fontSize: 18,
