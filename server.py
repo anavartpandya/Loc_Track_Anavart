@@ -176,6 +176,20 @@ def update_location():
                 db.session.add(user)
                 db.session.commit()
 
+            # Retrieve the last timestamp for this user
+            last_location = (
+                Location.query.filter_by(user_id=user.id)
+                .order_by(Location.timestamp.desc())
+                .first()
+            )
+
+            # Calculate time difference
+            if last_location:
+                time_difference = datetime.utcnow() - last_location.timestamp
+                time_difference_seconds = int(time_difference.total_seconds())
+            else:
+                time_difference_seconds = 0
+
             # Save location with timestamp
             location = Location(latitude=latitude, longitude=longitude, user_id=user.id)
             db.session.add(location)
@@ -195,7 +209,7 @@ def update_location():
 
             return jsonify({
                 "status": "success", 
-                "message": f"You are currently at {location_name}.\n Rating for this location is {location_rating}", 
+                "message": f"You are currently at {location_name}.\n Rating for this location is {location_rating}\n Time since last update: {time_difference_seconds} seconds.", 
                 "prox_status": proximity[0], 
                 "dist": proximity[1], 
                 "notify": proximity[2],
