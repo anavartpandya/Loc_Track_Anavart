@@ -176,6 +176,11 @@ def update_location():
                 db.session.add(user)
                 db.session.commit()
 
+            # Save location with timestamp
+            location = Location(latitude=latitude, longitude=longitude, user_id=user.id)
+            db.session.add(location)
+            db.session.commit()
+
             # Save location
             location = Location(latitude=latitude, longitude=longitude, user_id=user.id)
             db.session.add(location)
