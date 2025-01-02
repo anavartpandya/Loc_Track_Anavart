@@ -82,7 +82,7 @@ export default function HomeScreen() {
 
     const intervalID = setInterval(() => {
       fetchServerInstructions() 
-    }, 5000);
+    }, 10000);
 
     return () => clearInterval(intervalID);
   }, []);
@@ -440,7 +440,7 @@ return (
         <Text style={styles.cardTitle}>Server Message</Text>
         <Text style={styles.cardText}>{serverMessage}</Text>
         <Text style={styles.cardText}>
-          {"\n\n"}
+          {"\n"}
           Coords: {coords.latitude.toFixed(2)}, {coords.longitude.toFixed(2)}
           {"\n"}
         </Text>

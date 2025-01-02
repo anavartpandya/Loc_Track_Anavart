@@ -21,13 +21,20 @@ socketio = SocketIO(app)
 
 # Configure SQLite database
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://loc_track_anavart_database_user:IZVtXm7dwnBw6lDSEqZajkFvFBoTDc8t@dpg-ctnth2t2ng1s73bf0un0-a/loc_track_anavart_database'  # Path to SQLite database file
+# app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://loc_track_anavart_database_user:IZVtXm7dwnBw6lDSEqZajkFvFBoTDc8t@dpg-ctnth2t2ng1s73bf0un0-a.singapore-postgres.render.com/loc_track_anavart_database'
+# app.config['SQLALCHEMY_DATABASE_URI'] = (
+#     'postgresql://loc_track_anavart_database_user:IZVtXm7dwnBw6lDSEqZajkFvFBoTDc8t'
+#     '@dpg-ctnth2t2ng1s73bf0un0-a.singapore-postgres.render.com/loc_track_anavart_database'
+#     '?sslmode=require'
+# )
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # Initialize SQLAlchemy
 db = SQLAlchemy(app)
 
 # world = gpd.read_file(gpd.datasets.get_path('naturalearth_lowres'))
-world = gpd.read_file("ne_110m_admin_0_countries.shp")
+# world = gpd.read_file("ne_110m_admin_0_countries.shp")
+world = gpd.read_file("Loc_Track_Anavart/ne_110m_admin_0_countries.shp")
 
 # Define Database Models
 class User(db.Model):
