@@ -202,6 +202,14 @@ def update_location():
             db.session.add(location)
             db.session.commit()
 
+            # Limit the number of location entries per user to 5
+            user_locations = Location.query.filter_by(user_id=user.id).order_by(Location.timestamp).all()
+            if len(user_locations) > 5:
+                # Delete the oldest entries beyond the 5th
+                for loc in user_locations[:-5]:
+                    db.session.delete(loc)
+                db.session.commit()
+
             # Check for the proximity to know locations
             latest_location_for_proximity = {"latitude": latitude, "longitude": longitude}
             proximity = location_status(latest_location_for_proximity,predef_locations)
