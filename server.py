@@ -138,7 +138,7 @@ def rate_chart(world):
     world['Rating'] = [10]*len(world)
     for i in range(len(world)):
         if world['ADMIN'][i] in Tier1_Countries:
-            world['Rating'][i] = 100
+            world['Rating'][i] = 80
         elif world['ADMIN'][i] in Tier2_Countries:
             world['Rating'][i] = 60
         elif world['ADMIN'][i] in Tier3_Countries:
@@ -219,6 +219,8 @@ def update_location():
 
             location_rating = get_country_rating(latitude, longitude, world)
 
+            overall_rating = location_rating*((1+time_difference_seconds)**(100-location_rating))
+
             # Notify clients to refresh the map
             socketio.emit('refresh_map', {'message': 'New location received'})
 
@@ -228,7 +230,7 @@ def update_location():
                 "prox_status": proximity[0], 
                 "dist": proximity[1], 
                 "notify": proximity[2],
-                "Rating": int(location_rating), 
+                "Rating": int(overall_rating), 
                 "deviceId": device_id}), 200
         
         except json.JSONDecodeError:
