@@ -82,7 +82,7 @@ export default function HomeScreen() {
 
     const intervalID = setInterval(() => {
       fetchServerInstructions() 
-    }, 10000);
+    }, 5000);
 
     return () => clearInterval(intervalID);
   }, []);

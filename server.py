@@ -6,6 +6,10 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_socketio import SocketIO
 import folium
 import json
+import numpy as np
+
+from sklearn.cluster import DBSCAN
+from geopy.distance import geodesic
 
 from math import radians, sin, cos, sqrt, atan2
 
@@ -49,6 +53,15 @@ class Location(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     user = db.relationship('User', backref=db.backref('locations', lazy=True))
     timestamp = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+
+class UserLocationStats(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    cluster_id = db.Column(db.Integer, nullable=False)
+    cluster_name = db.Column(db.String(255), nullable=False)
+    time_spent = db.Column(db.Integer, default=0)  # Time spent in seconds
+    last_update = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    user = db.relationship('User', backref=db.backref('location_stats', lazy=True))
     
 # Create tables
 with app.app_context():
@@ -154,6 +167,14 @@ def get_country_rating(lat, lon, world):
             return country['Rating']
     return 0
 
+def haversine_matrix(locations):
+    coords = np.array([[loc['latitude'], loc['longitude']] for loc in locations])
+    dist_matrix = np.zeros((len(coords), len(coords)))
+    for i, coord1 in enumerate(coords):
+        for j, coord2 in enumerate(coords):
+            dist_matrix[i, j] = geodesic(coord1, coord2).meters
+    return dist_matrix
+
 @app.route('/')
 def home():
     return "Flask server is running!", 200
@@ -209,6 +230,39 @@ def update_location():
                 for loc in user_locations[:-5]:
                     db.session.delete(loc)
                 db.session.commit()
+
+            # *** New Logic for Clustering and Time Spent ***
+
+            # Fetch all locations for this user
+            locations = [{"latitude": loc.latitude, "longitude": loc.longitude} for loc in user_locations]
+            dist_matrix = haversine_matrix(locations)
+            dbscan = DBSCAN(eps=100, min_samples=1, metric="precomputed")
+            clusters = dbscan.fit_predict(dist_matrix)
+
+            # Assign cluster to the new location
+            current_cluster = clusters[-1]
+            cluster_name = get_location_name(latitude, longitude)
+
+            # Update or insert cluster info in user_location_stats
+            user_stat = UserLocationStats.query.filter_by(user_id=user.id, cluster_id=current_cluster).first()
+            if user_stat:
+                # Update existing cluster stats
+                user_stat.time_spent += time_difference_seconds  # Increment time spent
+                user_stat.last_update = datetime.utcnow()
+            else:
+                # Create new cluster stats
+                user_stat = UserLocationStats(
+                    user_id=user.id,
+                    cluster_id=current_cluster,
+                    cluster_name=cluster_name,
+                    time_spent=time_difference_seconds,
+                    last_update=datetime.utcnow()
+                )
+                db.session.add(user_stat)
+
+            db.session.commit()
+
+            # *** End of New Logic ***
 
             # Check for the proximity to know locations
             latest_location_for_proximity = {"latitude": latitude, "longitude": longitude}
