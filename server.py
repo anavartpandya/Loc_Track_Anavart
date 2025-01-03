@@ -33,8 +33,8 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
 # world = gpd.read_file(gpd.datasets.get_path('naturalearth_lowres'))
-# world = gpd.read_file("ne_110m_admin_0_countries.shp")
-world = gpd.read_file("Loc_Track_Anavart/ne_110m_admin_0_countries.shp")
+world = gpd.read_file("ne_110m_admin_0_countries.shp")
+# world = gpd.read_file("Loc_Track_Anavart/ne_110m_admin_0_countries.shp")
 
 # Define Database Models
 class User(db.Model):
