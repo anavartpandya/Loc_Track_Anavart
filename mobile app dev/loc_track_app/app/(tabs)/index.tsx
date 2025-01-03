@@ -170,7 +170,7 @@ export default function HomeScreen() {
       setLocationStatus('Location sent!');
 
       // Trigger a notification with the server message
-      sendNotification(response.data.message);
+      // sendNotification(response.data.message);
 
     } catch (err) {
       console.error('Error sending location:', err);
