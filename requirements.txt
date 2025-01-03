@@ -7,7 +7,7 @@ geopandas
 shapely
 pyproj
 fiona
-psycop g2
+psycopg2
 
 # pghero-5e023115
 # 5f28232d54127e947c07c121fe19cd00
