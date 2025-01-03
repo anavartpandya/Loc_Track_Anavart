@@ -241,6 +241,7 @@ def update_location():
 
             # Assign cluster to the new location
             current_cluster = clusters[-1]
+            current_cluster = int(current_cluster)
             cluster_name = get_location_name(latitude, longitude)
 
             # Update or insert cluster info in user_location_stats
