@@ -219,7 +219,7 @@ def update_location():
 
             location_rating = get_country_rating(latitude, longitude, world)
 
-            overall_rating = int(location_rating*((1+time_difference_seconds)**(location_rating-100)))
+            overall_rating = int(location_rating*((1+time_difference_seconds)**((location_rating-100))/100))
 
             # Notify clients to refresh the map
             socketio.emit('refresh_map', {'message': 'New location received'})
