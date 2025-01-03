@@ -225,7 +225,7 @@ def update_location():
 
             # Limit the number of location entries per user to 5
             user_locations = Location.query.filter_by(user_id=user.id).order_by(Location.timestamp).all()
-            if len(user_locations) > 5:
+            if len(user_locations) > 17279:
                 # Delete the oldest entries beyond the 5th
                 for loc in user_locations[:-5]:
                     db.session.delete(loc)

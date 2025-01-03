@@ -117,7 +117,7 @@ export default function HomeScreen() {
       // data might look like: { message: "Hello from server", requestLocation: true }
       setServerMessage(data.message ?? 'No message from server');
       if (data.requestLocation) {
-        // handleSendLocation();
+        handleSendLocation();
       }
     } catch (error) {
       // console.error('Error fetching instructions:', error);
