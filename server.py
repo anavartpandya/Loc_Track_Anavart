@@ -188,6 +188,8 @@ def home():
 @app.route('/login', methods=['POST'])
 def login():
     data = request.json
+    print("Received login request:", data)  # Log payload
+    print("Request headers:", request.headers)  # Log headers
 
     email = data.get('email')
     password = data.get('password')
@@ -224,7 +226,7 @@ def signup():
     except Exception as e:
         print(f"Error generating password hash: {e}")
         message_string = f"message is {e}"
-        password_hash = password
+        # password_hash = password
         return jsonify({"success": True, "message": message_string}), 201
     new_user = UserLogin(email=email, password_hash=password_hash)
 

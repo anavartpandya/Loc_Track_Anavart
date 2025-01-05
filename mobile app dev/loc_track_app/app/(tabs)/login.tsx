@@ -23,21 +23,31 @@ export default function LoginScreen() {
 
       // Use Firebase to sign in with the Google token
       const credential = GoogleAuthProvider.credential(id_token);
-      signInWithCredential(auth, credential)
-        .then((userCredential) => {
-          console.log('User signed in with Google:', userCredential.user);
-        })
+      // signInWithCredential(auth, credential)
+        // .then((userCredential) => {
+          // console.log('User signed in with Google:', userCredential.user);
+        // })
         // .catch((error) => console.error('Error signing in with Google:', error.message));
     }
   }, [response]);
 
   const handleEmailLogin = async () => {
     try {
+      // const payload = {
+      //   email: email_user,
+      //   password: password_user,
+      // };      
       const payload = {
-        email: email_user,
-        password: password_user,
-      };      
-      const response = await axios.post(`${SERVER_URL}/login`, payload);
+        email: "test@example.com",
+        password: "TestPassword123",
+      };
+      console.log('Payload:', payload);
+      const response = await axios.post(`${SERVER_URL}/login`, payload, {
+        headers: {
+          'Content-Type': 'application/json', // Explicitly set the content type
+        },
+      });
+      console.log('Response:', response.data);
 
       if (response.data.success) {
         console.log('User signed in with email:', response.data.user);
@@ -50,7 +60,8 @@ export default function LoginScreen() {
         Alert.alert('Error', 'Incorrect password. Please try again.');
       }
     } catch (error) {
-      // console.error('Error signing in with email:', error);
+      console.error('Error signing in with email:', error);
+      console.log('Response:', error);
       Alert.alert('Login Error', 'An error occurred. Please try again.');
     }
   };
