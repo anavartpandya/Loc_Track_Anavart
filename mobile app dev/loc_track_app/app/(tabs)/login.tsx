@@ -33,21 +33,21 @@ export default function LoginScreen() {
 
   const handleEmailLogin = async () => {
     try {
-      // const payload = {
-      //   email: email_user,
-      //   password: password_user,
-      // };      
       const payload = {
-        email: "1223",
-        password: "124",
-      };
-      console.log('Payload:', payload);
+        email: email_user,
+        password: password_user,
+      };      
+      // const payload = {
+      //   email: "1223",
+      //   password: "124",
+      // };
+      // console.log('Payload:', payload);
       const response = await axios.post(`${SERVER_URL}/login`, payload, {
         headers: {
           'Content-Type': 'application/json', // Explicitly set the content type
         },
       });
-      console.log('Response:', response.data);
+      // console.log('Response:', response.data);
 
       if (response.data.success) {
         console.log('User signed in with email:', response.data.user);
@@ -60,7 +60,7 @@ export default function LoginScreen() {
         Alert.alert('Error', 'Incorrect password. Please try again.');
       }
     } catch (error) {
-      console.error('Error signing in with email:', error);
+      // console.error('Error signing in with email:', error);
       console.log('Response:', error);
       Alert.alert('Login Error', 'An error occurred. Please try again.');
     }

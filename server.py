@@ -200,12 +200,12 @@ def login():
     user = UserLogin.query.filter_by(email=email).first()
 
     if not user:
-        return jsonify({"success": False, "error": "email_not_found", "message": "Email not found. Please sign up."}), 404
+        return jsonify({"success": False, "error": "email_not_found", "message": "Email not found. Please sign up."})
 
     if not check_password_hash(user.password_hash, password):
-        return jsonify({"success": False, "error": "incorrect_password", "message": "Incorrect password. Please try again."}), 401
+        return jsonify({"success": False, "error": "incorrect_password", "message": "Incorrect password. Please try again."})
 
-    return jsonify({"success": True, "user": {"id": user.id, "email": user.email}}), 200
+    return jsonify({"success": True, "user": {"id": user.id, "email": user.email}})
 
 @app.route('/signup', methods=['POST'])
 def signup():
@@ -215,10 +215,10 @@ def signup():
     password = data.get('password')
 
     if not email or not password:
-        return jsonify({"success": False, "error": "missing_fields", "message": "Email and password are required."}), 400
+        return jsonify({"success": False, "error": "missing_fields", "message": "Email and password are required."})
 
     if UserLogin.query.filter_by(email=email).first():
-        return jsonify({"success": False, "error": "email_exists", "message": "Email already exists."}), 409
+        return jsonify({"success": False, "error": "email_exists", "message": "Email already exists."})
 
     # password_hash = generate_password_hash(password)
     try:
@@ -227,7 +227,7 @@ def signup():
         print(f"Error generating password hash: {e}")
         message_string = f"message is {e}"
         # password_hash = password
-        return jsonify({"success": True, "message": message_string}), 201
+        return jsonify({"success": True, "message": message_string})
     new_user = UserLogin(email=email, password_hash=password_hash)
 
     db.session.add(new_user)
