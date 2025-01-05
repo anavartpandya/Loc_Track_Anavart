@@ -218,7 +218,8 @@ def signup():
     if UserLogin.query.filter_by(email=email).first():
         return jsonify({"success": False, "error": "email_exists", "message": "Email already exists."}), 409
 
-    password_hash = generate_password_hash(password)
+    # password_hash = generate_password_hash(password)
+    password_hash = password
     new_user = UserLogin(email=email, password_hash=password_hash)
 
     db.session.add(new_user)

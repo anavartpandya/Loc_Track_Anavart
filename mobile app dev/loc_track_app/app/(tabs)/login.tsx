@@ -14,8 +14,8 @@ export default function LoginScreen() {
     scopes: ['openid', 'email', 'profile'],
   });
 
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email_user, setEmail] = useState('');
+  const [password_user, setPassword] = useState('');
 
   useEffect(() => {
     if (response?.type === 'success') {
@@ -27,27 +27,30 @@ export default function LoginScreen() {
         .then((userCredential) => {
           console.log('User signed in with Google:', userCredential.user);
         })
-        .catch((error) => console.error('Error signing in with Google:', error.message));
+        // .catch((error) => console.error('Error signing in with Google:', error.message));
     }
   }, [response]);
 
   const handleEmailLogin = async () => {
     try {
-      const response = await axios.post(`${SERVER_URL}/login`, {
-        email,
-        password,
-      });
+      const payload = {
+        email: email_user,
+        password: password_user,
+      };      
+      const response = await axios.post(`${SERVER_URL}/login`, payload);
 
       if (response.data.success) {
         console.log('User signed in with email:', response.data.user);
         Alert.alert('Success', 'Logged in successfully');
+      } else if (response.data.error === "missing_fields") {
+        Alert.alert('Error', 'Email and password are required.');
       } else if (response.data.error === 'email_not_found') {
         Alert.alert('Error', 'Email not found. Please sign up.');
       } else if (response.data.error === 'incorrect_password') {
         Alert.alert('Error', 'Incorrect password. Please try again.');
       }
     } catch (error) {
-      console.error('Error signing in with email:', error);
+      // console.error('Error signing in with email:', error);
       Alert.alert('Login Error', 'An error occurred. Please try again.');
     }
   };
@@ -67,14 +70,14 @@ export default function LoginScreen() {
         placeholder="Email"
         keyboardType="email-address"
         autoCapitalize="none"
-        value={email}
+        value={email_user}
         onChangeText={(text) => setEmail(text)}
       />
       <TextInput
         style={styles.input}
         placeholder="Password"
         secureTextEntry
-        value={password}
+        value={password_user}
         onChangeText={(text) => setPassword(text)}
       />
       <TouchableOpacity style={styles.emailButton} onPress={handleEmailLogin}>
