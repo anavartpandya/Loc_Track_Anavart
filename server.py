@@ -220,11 +220,12 @@ def signup():
 
     # password_hash = generate_password_hash(password)
     try:
-        password_hash = generate_password_hash(password, method="sha256")
+        password_hash = generate_password_hash(password)
     except Exception as e:
         print(f"Error generating password hash: {e}")
+        message_string = f"message is {e}"
         password_hash = password
-        return jsonify({"success": True, "message": e}), 201
+        return jsonify({"success": True, "message": message_string}), 201
     new_user = UserLogin(email=email, password_hash=password_hash)
 
     db.session.add(new_user)
