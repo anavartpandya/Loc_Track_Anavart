@@ -16,6 +16,7 @@ export default function LoginScreen() {
 
   const [email_user, setEmail] = useState('');
   const [password_user, setPassword] = useState('');
+  const [showSignup, setShowSignup] = useState(false); // State to toggle Sign Up option
 
   useEffect(() => {
     if (response?.type === 'success') {
@@ -31,7 +32,19 @@ export default function LoginScreen() {
     }
   }, [response]);
 
+  const isValidEmail = (email: string): boolean => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/; // Basic email validation regex
+    return emailRegex.test(email);
+  };
+  
+
   const handleEmailLogin = async () => {
+  
+    if (!isValidEmail(email_user)) {
+      Alert.alert('Invalid Email', 'Please enter a valid email address.');
+      return; // Stop further execution
+    }
+
     try {
       const payload = {
         email: email_user,
@@ -52,17 +65,59 @@ export default function LoginScreen() {
       if (response.data.success) {
         console.log('User signed in with email:', response.data.user);
         Alert.alert('Success', 'Logged in successfully');
+        setShowSignup(false); // Hide Sign Up option if login succeeds
       } else if (response.data.error === "missing_fields") {
         Alert.alert('Error', 'Email and password are required.');
+        // setShowSignup(true); // Hide Sign Up option if login succeeds
       } else if (response.data.error === 'email_not_found') {
         Alert.alert('Error', 'Email not found. Please sign up.');
+        setShowSignup(true); // Hide Sign Up option if login succeeds
       } else if (response.data.error === 'incorrect_password') {
         Alert.alert('Error', 'Incorrect password. Please try again.');
+        setShowSignup(false); // Hide Sign Up option if login succeeds
       }
     } catch (error) {
       // console.error('Error signing in with email:', error);
       console.log('Response:', error);
       Alert.alert('Login Error', 'An error occurred. Please try again.');
+    } finally {
+      // Clear the input fields after login attempt
+      setEmail('');
+      setPassword('');
+    }
+  };
+
+  const handleSignup = async () => {
+
+    if (!isValidEmail(email_user)) {
+      Alert.alert('Invalid Email', 'Please enter a valid email address.');
+      return; // Stop further execution
+    }
+    
+    try {
+      const payload = {
+        email: email_user,
+        password: password_user,
+      };
+      const response = await axios.post(`${SERVER_URL}/signup`, payload, {
+        headers: {
+          'Content-Type': 'application/json', // Explicitly set the content type
+        },
+      });
+
+      if (response.data.success) {
+        Alert.alert('Success', 'Sign Up successful! Please log in.');
+        setShowSignup(false); // Hide Sign Up option after successful sign-up
+      } else {
+        Alert.alert('Error', response.data.message || 'Sign Up failed. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error signing up:', error);
+      Alert.alert('Sign Up Error', 'An error occurred. Please try again.');
+    } finally {
+      // Clear the input fields after sign-up attempt
+      setEmail('');
+      setPassword('');
     }
   };
 
@@ -94,6 +149,13 @@ export default function LoginScreen() {
       <TouchableOpacity style={styles.emailButton} onPress={handleEmailLogin}>
         <Text style={styles.emailButtonText}>Login with Email</Text>
       </TouchableOpacity>
+
+      {/* Conditionally render Sign Up button */}
+      {showSignup && (
+        <TouchableOpacity style={styles.signupButton} onPress={handleSignup}>
+          <Text style={styles.signupButtonText}>Sign Up</Text>
+        </TouchableOpacity>
+      )}
 
       {/* Google Login */}
       <TouchableOpacity
@@ -154,6 +216,21 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
   },
+
+  signupButton: {
+    backgroundColor: '#007BFF',
+    padding: 10,
+    borderRadius: 8,
+    width: '80%',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  signupButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+
   googleButton: {
     flexDirection: 'row',
     alignItems: 'center',
