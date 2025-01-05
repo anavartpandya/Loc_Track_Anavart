@@ -7,6 +7,7 @@ from flask_socketio import SocketIO
 import folium
 import json
 import numpy as np
+from werkzeug.security import generate_password_hash, check_password_hash
 
 from sklearn.cluster import DBSCAN
 from geopy.distance import geodesic
@@ -62,6 +63,11 @@ class UserLocationStats(db.Model):
     time_spent = db.Column(db.Integer, default=0)  # Time spent in seconds
     last_update = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     user = db.relationship('User', backref=db.backref('location_stats', lazy=True))
+
+class UserLogin(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    email = db.Column(db.String(120), unique=True, nullable=False)
+    password_hash = db.Column(db.String(128), nullable=False)
     
 # Create tables
 with app.app_context():
@@ -178,6 +184,46 @@ def haversine_matrix(locations):
 @app.route('/')
 def home():
     return "Flask server is running!", 200
+
+def login():
+    data = request.json
+
+    email = data.get('email')
+    password = data.get('password')
+
+    if not email or not password:
+        return jsonify({"success": False, "error": "missing_fields", "message": "Email and password are required."}), 400
+
+    user = UserLogin.query.filter_by(email=email).first()
+
+    if not user:
+        return jsonify({"success": False, "error": "email_not_found", "message": "Email not found. Please sign up."}), 404
+
+    if not check_password_hash(user.password_hash, password):
+        return jsonify({"success": False, "error": "incorrect_password", "message": "Incorrect password. Please try again."}), 401
+
+    return jsonify({"success": True, "user": {"id": user.id, "email": user.email}}), 200
+
+@app.route('/signup', methods=['POST'])
+def signup():
+    data = request.json
+
+    email = data.get('email')
+    password = data.get('password')
+
+    if not email or not password:
+        return jsonify({"success": False, "error": "missing_fields", "message": "Email and password are required."}), 400
+
+    if UserLogin.query.filter_by(email=email).first():
+        return jsonify({"success": False, "error": "email_exists", "message": "Email already exists."}), 409
+
+    password_hash = generate_password_hash(password)
+    new_user = UserLogin(email=email, password_hash=password_hash)
+
+    db.session.add(new_user)
+    db.session.commit()
+
+    return jsonify({"success": True, "message": "User registered successfully."}), 201
 
 @app.route("/update_location", methods=["POST"])
 def update_location():
@@ -374,5 +420,5 @@ def show_map():
 
 if __name__ == '__main__':
     eventlet.monkey_patch()
-    # socketio.run(app, host='0.0.0.0', port=5000, debug=True)
+    # socketio.run(app, host='127.0.0.1', port=5000, debug=True)
     socketio.run(app, host='0.0.0.0', port=5050, debug=False)
