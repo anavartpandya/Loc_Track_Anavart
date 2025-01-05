@@ -219,7 +219,11 @@ def signup():
         return jsonify({"success": False, "error": "email_exists", "message": "Email already exists."}), 409
 
     # password_hash = generate_password_hash(password)
-    password_hash = password
+    try:
+        password_hash = generate_password_hash(password, method="sha256")
+    except Exception as e:
+        print(f"Error generating password hash: {e}")
+    # password_hash = password
     new_user = UserLogin(email=email, password_hash=password_hash)
 
     db.session.add(new_user)
