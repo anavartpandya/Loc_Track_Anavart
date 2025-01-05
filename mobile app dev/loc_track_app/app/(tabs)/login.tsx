@@ -23,10 +23,10 @@ export default function LoginScreen() {
 
       // Use Firebase to sign in with the Google token
       const credential = GoogleAuthProvider.credential(id_token);
-      // signInWithCredential(auth, credential)
-        // .then((userCredential) => {
-          // console.log('User signed in with Google:', userCredential.user);
-        // })
+      signInWithCredential(auth, credential)
+        .then((userCredential) => {
+          console.log('User signed in with Google:', userCredential.user);
+        })
         // .catch((error) => console.error('Error signing in with Google:', error.message));
     }
   }, [response]);
@@ -38,8 +38,8 @@ export default function LoginScreen() {
       //   password: password_user,
       // };      
       const payload = {
-        email: "test@example.com",
-        password: "TestPassword123",
+        email: "1223",
+        password: "124",
       };
       console.log('Payload:', payload);
       const response = await axios.post(`${SERVER_URL}/login`, payload, {
