@@ -185,6 +185,7 @@ def haversine_matrix(locations):
 def home():
     return "Flask server is running!", 200
 
+@app.route('/login', methods=['POST'])
 def login():
     data = request.json
 
