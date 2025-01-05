@@ -16,12 +16,13 @@ import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 
 import * as Notifications from 'expo-notifications';
-import { Icon } from 'native-base';
+// import { Icon } from 'native-base';
 import { setStatusBarBackgroundColor } from 'expo-status-bar';
 // import Constants from 'expo-constants';
 
 // Replace this with your actual Render server URL:
 const SERVER_URL = 'https://loc-track-anavart.onrender.com';
+// const SERVER_URL = 'http://127.0.0.1:5000';
 
 // Configure notification behavior
 Notifications.setNotificationHandler({
@@ -117,7 +118,7 @@ export default function HomeScreen() {
       // data might look like: { message: "Hello from server", requestLocation: true }
       setServerMessage(data.message ?? 'No message from server');
       if (data.requestLocation) {
-        handleSendLocation();
+        // handleSendLocation();
       }
     } catch (error) {
       // console.error('Error fetching instructions:', error);
@@ -170,7 +171,7 @@ export default function HomeScreen() {
       setLocationStatus('Location sent!');
 
       // Trigger a notification with the server message
-      sendNotification(response.data.message);
+      // sendNotification(response.data.message);
 
     } catch (err) {
       // console.error('Error sending location:', err);
