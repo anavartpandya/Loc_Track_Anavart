@@ -17,6 +17,8 @@ export default function LoginScreen() {
   const [email_user, setEmail] = useState('');
   const [password_user, setPassword] = useState('');
   const [showSignup, setShowSignup] = useState(false); // State to toggle Sign Up option
+  const [verificationCode, setVerificationCode] = useState('');
+  const [isVerifying, setIsVerifying] = useState(false); // Toggle for verification step
 
   useEffect(() => {
     if (response?.type === 'success') {
@@ -106,8 +108,10 @@ export default function LoginScreen() {
       });
 
       if (response.data.success) {
-        Alert.alert('Success', 'Sign Up successful! Please log in.');
-        setShowSignup(false); // Hide Sign Up option after successful sign-up
+        Alert.alert('Success', 'Verification email sent. Please check your email.');
+        // Alert.alert('Success', 'Sign Up successful! Please log in.');
+        setIsVerifying(true); // Move to verification step
+        // setShowSignup(false); // Hide Sign Up option after successful sign-up
       } else {
         Alert.alert('Error', response.data.message || 'Sign Up failed. Please try again.');
       }
@@ -120,6 +124,27 @@ export default function LoginScreen() {
       setPassword('');
     }
   };
+
+  const handleVerify = async () => {
+    try {
+      const payload = { email: email_user, token: verificationCode, password: password_user };
+      const response = await axios.post(`${SERVER_URL}/verify_email`, payload, {
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+      if (response.data.success) {
+        Alert.alert('Success', 'Email verified and account created successfully!');
+        setIsVerifying(false); // Return to login
+        setShowSignup(false); // Hide Sign Up option after successful sign-up
+      } else {
+        Alert.alert('Error', response.data.message || 'Verification failed.');
+      }
+    } catch (error) {
+      console.error('Error during verification:', error);
+      Alert.alert('Verification Error', 'An error occurred.');
+    }
+  };
+
 
   return (
     <View style={styles.container}>
@@ -151,10 +176,26 @@ export default function LoginScreen() {
       </TouchableOpacity>
 
       {/* Conditionally render Sign Up button */}
-      {showSignup && (
+      {/* {showSignup && (
         <TouchableOpacity style={styles.signupButton} onPress={handleSignup}>
           <Text style={styles.signupButtonText}>Sign Up</Text>
         </TouchableOpacity>
+      )}     */}
+      {showSignup && (
+        <View style={styles.signupContainer}>
+          {isVerifying ? (
+            <TouchableOpacity
+              style={styles.verifyButton}
+              onPress={handleVerify}
+            >
+              <Text style={styles.verifyButtonText}>Send Verification Code</Text>
+            </TouchableOpacity>
+          ) : (
+            <TouchableOpacity style={styles.signupButton} onPress={handleSignup}>
+              <Text style={styles.signupButtonText}>Sign Up</Text>
+            </TouchableOpacity>
+          )}
+        </View>
       )}
 
       {/* Google Login */}
@@ -217,6 +258,11 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
 
+  signupContainer: {
+    width: '80%',
+    alignItems: 'center',
+  },
+
   signupButton: {
     backgroundColor: '#007BFF',
     padding: 10,
@@ -230,6 +276,15 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
   },
+
+  verifyButton: { 
+    backgroundColor: '#28A745', 
+    padding: 10, 
+    borderRadius: 5 },
+
+  verifyButtonText: { 
+    color: '#fff', 
+    textAlign: 'center' },
 
   googleButton: {
     flexDirection: 'row',

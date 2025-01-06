@@ -16,6 +16,10 @@ from math import radians, sin, cos, sqrt, atan2
 
 import requests
 
+import smtplib
+from email.mime.text import MIMEText
+import random
+
 import geopandas as gpd
 from shapely.geometry import Point
 
@@ -68,6 +72,12 @@ class UserLogin(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(120), unique=True, nullable=False)
     password_hash = db.Column(db.String(128), nullable=False)
+
+# Email Verification Tokens Table
+class EmailVerification(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    email = db.Column(db.String(120), unique=True, nullable=False)
+    token = db.Column(db.String(6), nullable=False)  # Store 6-digit OTP
     
 # Create tables
 with app.app_context():
@@ -181,6 +191,70 @@ def haversine_matrix(locations):
             dist_matrix[i, j] = geodesic(coord1, coord2).meters
     return dist_matrix
 
+def send_email(to_email, token):
+    try:
+        sender_email = "mokshappswaminaryankumkum@gmail.com"
+        sender_password = "lddz jbzz fofw opik"
+        smtp_server = "smtp.gmail.com"
+        smtp_port = 587
+
+        # Create the email content
+        msg = MIMEText(f"Your email verification code is: {token}")
+        msg['Subject'] = "Moksh App Email Verification Code"
+        msg['From'] = sender_email
+        msg['To'] = to_email
+
+        # Send the email
+        with smtplib.SMTP(smtp_server, smtp_port) as server:
+            server.starttls()
+            server.login(sender_email, sender_password)
+            server.send_message(msg)
+        return True
+    except Exception as e:
+        print(f"Error sending email: {e}")
+        return False
+
+# @app.route('/send_verification_email', methods=['POST'])
+# def send_verification_email():
+#     data = request.json
+#     email = data.get('email')
+
+#     # if not email:
+#     #     return jsonify({"success": False, "message": "Email is required."}), 400
+
+#     # Generate a 6-digit token
+#     token = str(random.randint(100000, 999999))
+
+#     # Save the token in the database
+#     existing_record = EmailVerification.query.filter_by(email=email).first()
+#     if existing_record:
+#         existing_record.token = token
+#     else:
+#         new_record = EmailVerification(email=email, token=token)
+#         db.session.add(new_record)
+#     db.session.commit()
+
+#     # Send the token via email
+#     if send_email(email, token):
+#         return jsonify({"success": True, "message": "Verification email sent."})
+#     else:
+#         return jsonify({"success": False, "message": "Failed to send verification email."})
+
+# @app.route('/verify_email', methods=['POST'])
+# def verify_email():
+#     data = request.json
+#     email = data.get('email')
+#     token = data.get('token')
+
+#     if not email or not token:
+#         return jsonify({"success": False, "message": "Email and token are required."})
+
+#     record = EmailVerification.query.filter_by(email=email, token=token).first()
+#     if not record:
+#         return jsonify({"success": False, "message": "Invalid email or token."})
+
+#     return jsonify({"success": True, "message": "Email verified successfully."})
+
 @app.route('/')
 def home():
     return "Flask server is running!", 200
@@ -219,21 +293,67 @@ def signup():
 
     if UserLogin.query.filter_by(email=email).first():
         return jsonify({"success": False, "error": "email_exists", "message": "Email already exists."})
+    
+    # Generate a 6-digit token for email verification
+    token = str(random.randint(100000, 999999))
 
-    # password_hash = generate_password_hash(password)
-    try:
-        password_hash = generate_password_hash(password)
-    except Exception as e:
-        print(f"Error generating password hash: {e}")
-        message_string = f"message is {e}"
-        # password_hash = password
-        return jsonify({"success": True, "message": message_string})
-    new_user = UserLogin(email=email, password_hash=password_hash)
-
-    db.session.add(new_user)
+    # Save the token to the EmailVerification table
+    existing_record = EmailVerification.query.filter_by(email=email).first()
+    if existing_record:
+        existing_record.token = token
+    else:
+        new_record = EmailVerification(email=email, token=token)
+        db.session.add(new_record)
     db.session.commit()
 
-    return jsonify({"success": True, "message": "User registered successfully."}), 201
+    # try:
+    #     password_hash = generate_password_hash(password)
+    # except Exception as e:
+    #     print(f"Error generating password hash: {e}")
+    #     message_string = f"message is {e}"
+    #     # password_hash = password
+    #     return jsonify({"success": True, "message": message_string})
+    # new_user = UserLogin(email=email, password_hash=password_hash)
+
+    # db.session.add(new_user)
+    # db.session.commit()
+
+    # return jsonify({"success": True, "message": "User registered successfully."}), 201
+
+    # Send the verification email
+    if send_email(email, token):
+        return jsonify({"success": True, "message": "Verification email sent. Please verify your email."})
+    else:
+        return jsonify({"success": False, "message": "Failed to send verification email."})
+
+@app.route('/verify_email', methods=['POST'])
+def verify_email():
+    data = request.json
+    email = data.get('email')
+    token = data.get('token')
+    password = data.get('password')  # Added password to complete the signup
+
+    if not email or not token or not password:
+        return jsonify({"success": False, "message": "Email, token, and password are required."})
+
+    # Check if the token is valid
+    record = EmailVerification.query.filter_by(email=email, token=token).first()
+    if not record:
+        return jsonify({"success": False, "message": "Invalid email or token."})
+
+    # Create the user if the token is valid
+    try:
+        password_hash = generate_password_hash(password)
+        new_user = UserLogin(email=email, password_hash=password_hash)
+        db.session.add(new_user)
+
+        # Delete the verification record
+        db.session.delete(record)
+        db.session.commit()
+
+        return jsonify({"success": True, "message": "Email verified and account created successfully."})
+    except Exception as e:
+        return jsonify({"success": False, "message": f"Error creating account: {e}"})
 
 @app.route("/update_location", methods=["POST"])
 def update_location():
